@@ -21,7 +21,9 @@ NEAR_CALLS: str = f"({"|".join([
     "at least",
     "at list",
     "at this",
+    "atrisk",
     "lets",
+    "that list",
     "that was",
 ])})"
 
@@ -34,7 +36,14 @@ roll: list[str] = []
 # @param s The text to prim
 # @return The primmed text
 def prim(s: str) -> str:
-    return sub(r"s($|\s)", r"\1", s)
+    return sub(r"s$", "", s)
+
+# Removes duplicate elements from commands list
+#
+# @param l The list of commands
+# @return l without duplicates
+def remove_dup(l: Commands) -> Commands:
+    return [list(e) for e in set(tuple(e) for e in l)]
 
 # Grabs commands in the transcript roll
 #
@@ -77,7 +86,7 @@ def lex_cmds(roll: list[str]) -> Commands:
         if c not in s1_lex or c in s2_lex:
             cmds_v.append(c)
 
-    return cmds_v
+    return remove_dup(cmds_v)
 
 # Processes a chunk of audio
 #
