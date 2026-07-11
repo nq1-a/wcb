@@ -1,12 +1,11 @@
 from re import split, sub
 import sounddevice as sd
+from subprocess import run
 from tempfile import NamedTemporaryFile as TemporaryFile
 from wave import open as wave
 import whisper
 
 from consumers import *
-
-__import__("pyttsx3").speak("I will cum if this works first try")
 
 # Types
 type Commands = list[list[str]]
@@ -15,11 +14,27 @@ type Commands = list[list[str]]
 SAMPLE_RATE: int = 16000
 DURATION: int = 5
 BLOCK_SIZE: int = SAMPLE_RATE * DURATION
+
 CALL_WORD: str = "atlas"
+NEAR_CALLS: str = f"({"|".join([
+    "at his",
+    "at least",
+    "at list",
+    "at this",
+    "lets",
+    "that was",
+])})"
 
 # Useful variables
 model = whisper.load_model("base.en")
 roll: list[str] = []
+
+# Makes text easier to parse
+#
+# @param s The text to prim
+# @return The primmed text
+def prim(s: str) -> str:
+    return sub(r"s($|\s)", r"\1", s)
 
 # Grabs commands in the transcript roll
 #
@@ -27,7 +42,15 @@ roll: list[str] = []
 # @return A list of tokenized commands
 def lex_cmds(roll: list[str]) -> Commands:
     # Get combined data
-    full_script: list[str] = split(r" +", " ".join(roll))
+    full_script: list[str] = split(
+        r" +",
+        sub(
+            NEAR_CALLS,
+            CALL_WORD,
+            " ".join(roll)
+        )
+    )
+
     full_script = [s for s in full_script if len(s) > 0]
     cmds: Commands = []
 
@@ -47,12 +70,11 @@ def lex_cmds(roll: list[str]) -> Commands:
         return cmds
 
     s1_lex: Commands = lex_cmds([roll[0]])
+    s2_lex: Commands = lex_cmds([roll[1]])
     cmds_v: Commands = []
 
     for c in cmds:
-        for d in s1_lex:
-            if c == d: break
-        else:
+        if c not in s1_lex or c in s2_lex:
             cmds_v.append(c)
 
     return cmds_v
@@ -85,15 +107,21 @@ def process_aud(indata, frames, time, status):
 
         del roll[:-1]
         roll.append(sub(r"[^a-z ]", "", tsc["text"].lower())[1:])
+        print(roll[-1])
 
         # Parse commands
         lexed: Commands = lex_cmds(roll)
-        print(lexed)
+
+        for c in lexed:
+            try:
+                run(["espeak-ng", "'" + consumers_lt[prim(c[0])][c[1]](c[2:]) + "'"])
+            except KeyError:
+                pass
 
 # The main block
 def main():
-        # Construct roll
     print("[READ START]")
+    run(["espeak-ng", "'read start'"])
 
     try:
         with sd.InputStream(blocksize=BLOCK_SIZE, samplerate=SAMPLE_RATE, dtype="int16", channels=1, callback=process_aud):
