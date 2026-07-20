@@ -11,7 +11,7 @@ from consumers import *
 type Commands = list[list[str]]
 
 # Constants
-SAMPLE_RATE: int = 16000
+SAMPLE_RATE: int = 44100
 DURATION: int = 5
 BLOCK_SIZE: int = SAMPLE_RATE * DURATION
 
@@ -107,7 +107,7 @@ def process_aud(indata, frames, time, status):
             wav.writeframes(indata)
 
         # Construct roll
-        tsc = model.transcribe(tmp.name)
+        tsc = model.transcribe(tmp.name, fp16=False)
 
         if len(tsc["segments"]) == 0 or tsc["segments"][0]["no_speech_prob"] > 0.43:
             print("[no speech recorded]")
