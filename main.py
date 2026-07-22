@@ -2,13 +2,11 @@ from re import split, sub
 import sounddevice as sd
 from subprocess import run
 from tempfile import NamedTemporaryFile as TemporaryFile
+from tomllib import loads as toml_load
 from wave import open as wave
 import whisper
 
 from consumers import *
-
-# Types
-type Commands = list[list[str]]
 
 # Constants
 SAMPLE_RATE: int = 44100
@@ -21,13 +19,16 @@ NEAR_CALLS: str = f"({"|".join([
     "at least",
     "at list",
     "at this",
+    "atmos",
     "atrisk",
     "lets",
+    "ratless",
     "that list",
     "that was",
 ])})"
 
 # Useful variables
+config: Config = {}
 model = whisper.load_model("base.en")
 roll: list[str] = []
 
@@ -69,8 +70,8 @@ def lex_cmds(roll: list[str]) -> Commands:
             continue
 
         try:
-            if (n := full_script[i + 1]) in consumers:
-                cmds.append(full_script[i + 1:i + consumers[n] + 2])
+            if (n := prim(full_script[i + 1])) in consumers:
+                cmds.append([n] + full_script[i + 2:i + consumers[n] + 2])
         except IndexError:
             continue
 
@@ -96,7 +97,7 @@ def lex_cmds(roll: list[str]) -> Commands:
 # @param time How long the audio data is
 # @param status A status indicator
 def process_aud(indata, frames, time, status):
-    global roll
+    global config, roll
 
     with TemporaryFile(delete=True, suffix=".wav", prefix="aud_", dir=".") as tmp:
         # Write data to temporary file
@@ -123,12 +124,26 @@ def process_aud(indata, frames, time, status):
 
         for c in lexed:
             try:
-                run(["espeak-ng", "'" + consumers_lt[prim(c[0])][c[1]](c[2:]) + "'"])
+                ce: CommandExec = consumers_lt[c[0]][c[1]]
+                ce_ac: int = ce.__code__.co_argcount
+                run(["espeak-ng", "'" + ce(c[2:]) if ce_ac < 2 else ce(c[2:], config) + "'"])
             except KeyError:
                 pass
 
 # The main block
 def main():
+    global config
+
+    # Create & check tokens
+    with open("config.toml") as f:
+        config = toml_load(f.read())
+
+    for k, t in config["tokens"].items():
+        if len(t) == 0:
+            print(f"[TOKEN {k} IS MISSING]")
+            return
+
+    # Begin read loop
     print("[READ START]")
     run(["espeak-ng", "'read start'"])
 
