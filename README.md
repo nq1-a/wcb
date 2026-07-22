@@ -13,7 +13,6 @@ pip install -r requirements.txt
 # Before you run
 Make a file called `tokens.toml` that looks like this:
 ```
-[tokens]
 weatherapi_com = ""
 ```
 and fill in the blanks. You'll need an API key from each site.
