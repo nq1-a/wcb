@@ -11,7 +11,7 @@ pip install -r requirements.txt
 `cuda` is highly recommended for Nvidia GPUs.
 
 # Before you run
-Make a file called `tokens.toml` that looks like this:
+Make a file called `config.toml` that looks like this:
 ```
 [tokens]
 weatherapi_com = ""
@@ -19,4 +19,4 @@ weatherapi_com = ""
 [misc]
 city = ""
 ```
-and fill in the blanks. You'll need an API key from each site.
+and fill in the blanks. You'll need an API key from each site listed under `[tokens]`.
