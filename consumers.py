@@ -10,15 +10,21 @@ type CommandExec = Callable[[Command] | [Command, Config], str]
 
 # Registry of how many items each command consumes
 consumers: dict[str, int] = {
-    "return": 1,
+    "echo":     -1,
+    "return":    1,
 }
 
 # Lookup table of functions associated with subcommands
 consumers_lt: dict[str, dict[str, CommandExec]] = {
+    "echo": {
+        "_": lambda cmd:
+            " ".join(cmd),
+    },
+
     "return": {
-        "status":   lambda cmd:
+        "status": lambda cmd:
             "online",
-        "weather":  lambda cmd, cfg:
+        "weather": lambda cmd, cfg:
             f"""
                 Currently {(w := wget("https://api.weatherapi.com/v1/current.json", params={
                     "key":  cfg["tokens"]["weatherapi_com"],

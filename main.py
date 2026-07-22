@@ -27,6 +27,12 @@ NEAR_CALLS: str = f"({"|".join([
     "that was",
 ])})"
 
+STOP_WORD: str = "stop"
+NEAR_STOPS: str = f"({"|".join([
+    "start",
+    "started",
+])})"
+
 # Useful variables
 config: Config = {}
 model = whisper.load_model("base.en")
@@ -57,7 +63,11 @@ def lex_cmds(roll: list[str]) -> Commands:
         sub(
             NEAR_CALLS,
             CALL_WORD,
-            " ".join(roll)
+            sub(
+                NEAR_STOPS,
+                STOP_WORD,
+                " ".join(roll)
+            )
         )
     )
 
@@ -71,8 +81,11 @@ def lex_cmds(roll: list[str]) -> Commands:
 
         try:
             if (n := prim(full_script[i + 1])) in consumers:
-                cmds.append([n] + full_script[i + 2:i + consumers[n] + 2])
-        except IndexError:
+                if consumers[n] >= 0:
+                    cmds.append([n] + full_script[i + 2:i + 2 + consumers[n]])
+                else:
+                    cmds.append([n] + full_script[i + 2:i + 3 + full_script[i + 3:].index("stop")])
+        except (IndexError, ValueError):
             continue
 
     # If len(roll) > 1, check that commands aren't exclusive to sector 1
@@ -124,9 +137,13 @@ def process_aud(indata, frames, time, status):
 
         for c in lexed:
             try:
-                ce: CommandExec = consumers_lt[c[0]][c[1]]
+                ce_row = consumers_lt[c[0]]
+                ce_row_inc: bool = c[1] in ce_row
+                ce: CommandExec = ce_row[c[1] if ce_row_inc else "_"]
                 ce_ac: int = ce.__code__.co_argcount
-                run(["espeak-ng", "'" + ce(c[2:]) if ce_ac < 2 else ce(c[2:], config) + "'"])
+                tel: int = 2 - (1 if not ce_row_inc else 0)
+
+                run(["espeak-ng", "'" + ce(c[tel:]) if ce_ac < 2 else ce(c[tel:], config) + "'"])
             except KeyError:
                 pass
 
