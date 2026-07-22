@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from requests import get as wget
+import wikipedia
 
 # Types
 type Config = dict[str, dict[str, str]]
@@ -12,6 +13,7 @@ type CommandExec = Callable[[Command] | [Command, Config], str]
 consumers: dict[str, int] = {
     "echo":     -1,
     "return":    1,
+    "search":   -1,
 }
 
 # Lookup table of functions associated with subcommands
@@ -28,11 +30,16 @@ consumers_lt: dict[str, dict[str, CommandExec]] = {
             f"""
                 Currently {(w := wget("https://api.weatherapi.com/v1/current.json", params={
                     "key":  cfg["tokens"]["weatherapi_com"],
-                    "q":    cfg["misc"]["city"],
+                    "q":    cfg["personal"]["city"],
                 }).json()["current"])["condition"]["text"].lower()}
                 with a heat index of {w["heatindex_f"]}
                 and humidity of {w["humidity"]} percent.
                 Perceived heat index is {w["feelslike_f"]}.
             """,
+    },
+
+    "search": {
+        "_": lambda cmd:
+            wikipedia.summary(" ".join(cmd), sentences=2),
     },
 }

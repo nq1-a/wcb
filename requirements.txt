@@ -5,6 +5,7 @@ attr==0.3.2
 blobfile==3.2.0
 brotli==1.2.0
 brotlicffi==1.2.0.1
+cchardet==2.1.7
 cffi==2.1.0
 cffi==2.0.0
 chardet==7.4.3
@@ -30,10 +31,10 @@ fbscribelogger==0.1.7
 flint==0.0.1
 foo==.1
 gmpy2==2.3.1
-graphviz==0.21
 h2==4.3.0
 hatchet==1.4.1
 helion==1.2.0
+html5lib==1.1
 HTMLParser==0.0.2
 hypothesis==6.158.1
 importlib_resources==7.1.0
@@ -45,10 +46,10 @@ ipywidgets==8.1.8
 isal==1.8.0
 jax==0.11.0
 jnius==1.1.0
+jsonschema==4.26.0
 kerchunk==0.2.10
 keyring==25.7.0
 lief==1.0.0
-lxml==6.1.1
 lz4==4.4.5
 lzmaffi==0.3.0
 matchpy==0.5.5
@@ -64,6 +65,7 @@ onnx_ir==0.2.1
 onnxruntime==1.27.0
 onnxscript==0.7.1
 optree==0.19.1
+ordereddict==1.1
 pandas==3.0.3
 paramiko==5.0.0
 path.py==12.5.0
@@ -95,7 +97,9 @@ pytest_subtests==0.15.0
 pytorch_lightning==2.6.5
 PyYAML==6.0.3
 r2pipe==1.9.8
+railroad==0.5.0
 redis==8.0.1
+referencing==0.37.0
 requests_kerberos==0.15.0
 rocm_sdk==0.1.0
 safetensors==0.8.0

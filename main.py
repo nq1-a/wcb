@@ -5,6 +5,7 @@ from tempfile import NamedTemporaryFile as TemporaryFile
 from tomllib import loads as toml_load
 from wave import open as wave
 import whisper
+import wikipedia
 
 from consumers import *
 
@@ -35,7 +36,7 @@ NEAR_STOPS: str = f"({"|".join([
 
 # Useful variables
 config: Config = {}
-model = whisper.load_model("base.en")
+model = whisper.load_model("small.en")
 roll: list[str] = []
 
 # Makes text easier to parse
@@ -144,8 +145,10 @@ def process_aud(indata, frames, time, status):
                 tel: int = 2 - (1 if not ce_row_inc else 0)
 
                 run(["espeak-ng", "'" + ce(c[tel:]) if ce_ac < 2 else ce(c[tel:], config) + "'"])
-            except KeyError:
-                pass
+            except (KeyError, wikipedia.exceptions.PageError):
+                run(["espeak-ng", "'parse failure'"])
+            except wikipedia.exceptions.DisambiguationError:
+                run(["espeak-ng", "'ambiguous query'"])
 
 # The main block
 def main():
@@ -159,6 +162,9 @@ def main():
         if len(t) == 0:
             print(f"[TOKEN {k} IS MISSING]")
             return
+    
+    # Set Wikipedia user agent
+    wikipedia.set_user_agent(f"wcb/1.0 ({config["personal"]["email"]})")
 
     # Begin read loop
     print("[READ START]")
